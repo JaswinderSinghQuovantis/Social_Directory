@@ -1,14 +1,16 @@
-const express = require('express');
-const dotenv = require('dotenv');
-dotenv.config()
+import express, { json } from 'express';
+import { config } from 'dotenv';
+config()
+import {logger} from './logger/logger.js'
+
 // Configuring the database
-require('./Database/database')
+import './Database/database.js'
 
 // create express app
 const app = express();
 
 // parse requests of content-type - application/json
-app.use(express.json());
+app.use(json());
 
 // define a simple route
 app.get('/', (req, res) => {
@@ -17,5 +19,5 @@ app.get('/', (req, res) => {
 
 // listen for requests
 app.listen(process.env.Port, () => {
-    console.log(`Server is listening on port ${process.env.Port}`);
+    logger.info(`Server is listening on port ${process.env.Port}`);
 });

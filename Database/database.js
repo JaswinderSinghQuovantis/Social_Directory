@@ -1,11 +1,12 @@
-const dbConfig = require('../Config/config');
-const mongoose = require('mongoose');
+import {url}  from '../Config/config.js'
+import  mongoose  from 'mongoose';
+import {logger} from '../logger/logger.js'
 
 // Connecting to the database
-mongoose.connect(dbConfig.url, {
-}).then(() => {
-    console.log("Successfully connected to the database");    
-}).catch(err => {
-    console.log('Could not connect to the database. Exiting now...', err);
-    process.exit();
-});
+       mongoose.connect(url)
+       .then(() => {
+           logger.info("Successfully connected to the database");    
+       }).catch(err => {
+           logger.error('Could not connect to the database. Exiting now...', err);
+           process.exit();
+       });  
