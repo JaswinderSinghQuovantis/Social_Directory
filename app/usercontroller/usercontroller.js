@@ -41,7 +41,7 @@ class UserController {
                     console.log("e",error.name)
                     if (error.name === 'MongoServerError' && error.code === 11000) {
                         logger.error('User with this email Id is alreday exists');
-                        return res.status(httpcode.responseCode.conflit).send(
+                        return res.status(httpcode.responseCode.Conflict).send(
                             { success: false, message: 'User with this email Id is alreday exists',error:error }
                         )
                       }
