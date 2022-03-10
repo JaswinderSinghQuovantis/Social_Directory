@@ -27,33 +27,145 @@ class UserController {
                 const validationResult = validation.ValidationRegister.validate(userRegistration)
                 if (validationResult.error) {
                     logger.error('Failed To Validated Input');
-                    return res.status(httpcode.responseCode.Unprocessable_Entity).send({
+                    return res.status(httpcode().UNPROCESSABLENTITY).send({
                         success: false, message: validationResult.error.message
                     });
                 }
                 const userResult = await userservice.register(userRegistration)
-                if(userResult){
-                    return res.status(httpcode.responseCode.Created).json({
-                        sucess: true, message: 'User registrated is Successfully',data : userResult
-                    })
-                }   
+                if (userResult.name === 'MongoServerError' && userResult.code === 11000) {
+                    logger.error('User with this email Id OR Phone Number is alreday exists');
+                    return res.status(httpcode().CONFLICT).send(
+                        { success: false, message: 'User with this email Id OR Phone No is alreday exists',error:userResult }
+                    )
+                  }
                 else{
-                    console.log("e",error.name)
-                    if (error.name === 'MongoServerError' && error.code === 11000) {
-                        logger.error('User with this email Id is alreday exists');
-                        return res.status(httpcode.responseCode.Conflict).send(
-                            { success: false, message: 'User with this email Id is alreday exists',error:error }
-                        )
-                      }
+                    if(userResult){
+                        return res.status(httpcode().CREATED).json({
+                            sucess: true, message: 'User registrated is Successfully',data : userResult
+                        })
+                    }
                     return res.status(httpcode.responseCode.Bad_Request).json({
-                        sucess: true, message: 'Error while fetching',error:error
+                        sucess: true, message: 'Some Error occured',error:error
                     })
                 }       
             }
         } catch (error) {
-            logger.error("error", error);
-            return res.status(httpcode.responseCode.InternalServerError).json({ sucess: false, message: 'Internal server error', sucess: false })
+            logger.error(error);
+            return res.status(httpcode().INTERNALSERVERERROR).json({ sucess: false, message: 'Internal server error', error:error })
         }
     }
-}
+
+    /**
+	 * @description User login API
+	 * @method login is service class method
+	 */
+
+    login = async (req,res)=>{
+        try {
+            const loginData ={
+                email : req.body.email,
+                password : req.body.password
+            }
+            const validationResult = validation.ValidationLogin.validate(loginData)
+                if (validationResult.error) {
+                    logger.error('Failed To Validated Input');
+                    return res.status(httpcode().UNPROCESSABLENTITY).send({
+                        success: false, message: validationResult.error.message
+                    });
+                }
+                const userResult = await userservice.login(loginData)
+                if(userResult){
+                    logger.info('User Login is Succesfully')
+                    return res.status(httpcode().OK).json({
+                        sucess: true, message: 'User Login is Successfully',data : userResult
+                    })
+                }
+                else if(!userResult || userResult == "Invalid usercredential"){
+                    return res.status(httpcode().NOTFOUND).json({
+                        sucess: true, message: 'Invalid Credential',error:error
+                    })
+                }
+                return res.status(httpcode().BADREQUEST).json({
+                    sucess: true, message: 'Login Falied',error:error
+                }) 
+        } catch (error) {
+            logger.error(error);
+            return res.status(httpcode.InternalServerError).json({ sucess: false, message: 'Internal server error', sucess: false })
+        }
+    }
+
+    /**
+	 * @description User Profile API
+	 * @method CreateProfile is service class method
+	 */
+    createProfile = async(req,res) => {
+        try {
+        const userCredential = {
+            userId : req.user.token.email,
+            name : req.body.name,
+            dob:req.body.dob,
+            interest:req.body.interest,
+            location : req.body.location
+        }
+        const validationResult = validation.ValiidatingProfile.validate(userCredential)
+                if (validationResult.error) {
+                    logger.error('Failed To Validated Input');
+                    return res.status(httpcode().UNPROCESSABLENTITY).send({
+                        success: false, message: validationResult.error.message
+                    });
+                }
+                const userResult = await userservice.createProfile(userCredential)
+                if (userResult == 'Profile is Already exist') {
+                    return res.status(httpcode().CONFLICT).send(
+                        { success: false, message: 'this Profile is alreday exists',error:userResult }
+                    )
+                  }
+                else{
+                    if(userResult){
+                        return res.status(httpcode().CREATED).json({
+                                sucess: true, message: 'Profile is Created Successfull',data : userResult
+                        })
+                    }
+                    return res.status(httpcode.responseCode.Bad_Request).json({
+                        sucess: true, message: 'Some Error occured',error:error
+                    })
+                }       
+            }
+        catch (error) {
+            logger.error(error);
+            return res.status(httpcode().INTERNALSERVERERROR).json({ sucess: false, message: 'Internal server error', error:error })
+        }
+    }
+
+      /**
+	 * @description Searching profile with emailId
+	 * @method search profile profile with specific emailId
+	 */
+
+      searchProfile = async(req,res) =>{
+          const validationResult = validation.ValidatingInterests.validate(req.body)
+                if (validationResult.error) {
+                    logger.error('Failed To Validated Input');
+                    return res.status(httpcode().UNPROCESSABLENTITY).send({
+                        success: false, message: validationResult.error.message
+                    });
+                }
+                const searchResult = await userservice.searchProfile(req.body)
+                    if (searchResult == 'Profile is Already exist') {
+                        return res.status(httpcode().OK).send(
+                            { success: false, message: 'this Profile is alreday exists',data:searchResult }
+                        )
+                      }
+                    else{
+                        if(searchResult){
+                            return res.status(httpcode().CREATED).json({
+                                sucess: true, message: 'Profile is found',data : searchResult
+                            })
+                        }
+                        return res.status(httpcode().BADREQUEST).json({
+                            sucess: false, message: 'Some Error occured'
+                        })
+                    }   
+                }         
+      }
 export default new UserController;
