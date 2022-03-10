@@ -123,7 +123,7 @@ class UserController {
                 else{
                     if(userResult){
                         return res.status(httpcode().CREATED).json({
-                            sucess: true, message: 'User registrated is Successfully',data : userResult
+                                sucess: true, message: 'Profile is Created Successfull',data : userResult
                         })
                     }
                     return res.status(httpcode.responseCode.Bad_Request).json({
@@ -138,9 +138,8 @@ class UserController {
     }
 
       /**
-	 * @description creating profile with emailId
-     * @param userCredential
-	 * @method save will create profile with specific emailId
+	 * @description Searching profile with emailId
+	 * @method search profile profile with specific emailId
 	 */
 
       searchProfile = async(req,res) =>{
@@ -160,14 +159,13 @@ class UserController {
                     else{
                         if(searchResult){
                             return res.status(httpcode().CREATED).json({
-                                sucess: true, message: 'User registrated is Successfully',data : searchResult
+                                sucess: true, message: 'Profile is found',data : searchResult
                             })
                         }
                         return res.status(httpcode().BADREQUEST).json({
                             sucess: false, message: 'Some Error occured'
                         })
                     }   
-                }
-
+                }         
       }
 export default new UserController;
